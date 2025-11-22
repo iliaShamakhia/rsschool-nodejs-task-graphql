@@ -13,9 +13,12 @@ export const usersResolver = async (
   const profileBatch = users.map(async (user) => await profileLoader.load(user.id));
   const postsBatch = users.map(async (user) => await postsLoader.load(user.id));
 
-  const profiles = (await Promise.all(profileBatch)).filter((profile) => profile);
+  const profiles = await Promise.all(profileBatch);
 
   const profilesWithMemberType = profiles.map((profile) => {
+    if (!profile) {
+      return null;
+    }
     let memberType: { id: string } | undefined;
     memberType = memberTypes.find((mt) => mt.id === profile.memberTypeId);
     return { ...profile, memberType: { id: memberType?.id } };
