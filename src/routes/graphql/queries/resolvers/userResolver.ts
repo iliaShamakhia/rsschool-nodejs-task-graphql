@@ -37,7 +37,6 @@ export const userResolver = async (args: Record<string, any>, prisma: PrismaClie
     }),
   );
 
-  // find user's subscribers
   const userAsAuthorData = await prisma.subscribersOnAuthors.findMany({
     where: { authorId: user?.id },
   });

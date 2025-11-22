@@ -9,6 +9,7 @@ export const profileLoader = (prisma: PrismaClient) =>
       where: {
         userId: { in: userIdsMutable },
       },
+      include: { memberType: true }
     });
 
     const profileMap = new Map<string, Profile>();

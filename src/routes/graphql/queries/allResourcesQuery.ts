@@ -14,6 +14,7 @@ import { postResolver } from './resolvers/postResolver.js';
 import { userResolver } from './resolvers/userResolver.js';
 import { profileResolver } from './resolvers/profileResolver.js';
 import DataLoader from 'dataloader';
+import { parseResolveInfo, ResolveTree, simplifyParsedResolveInfoFragmentWithType } from 'graphql-parse-resolve-info';
 
 export const resourcesQuery = (
   prisma: PrismaClient,
@@ -35,7 +36,14 @@ export const resourcesQuery = (
 
       users: {
         type: new GraphQLList(UserType),
-        resolve: async () => usersResolver(prisma, profileLoader, postsLoader),
+        resolve: async (data, args, context, resolveInfo) => {
+          const parsedResolveInfoFragment = parseResolveInfo(resolveInfo) as ResolveTree;
+          const { fields } = simplifyParsedResolveInfoFragmentWithType(
+            parsedResolveInfoFragment,
+            UserType,
+          );
+          return usersResolver(prisma, profileLoader, postsLoader, fields);
+        },
       },
 
       profiles: {

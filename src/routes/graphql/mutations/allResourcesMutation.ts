@@ -114,7 +114,7 @@ export const resourcesMutation = (prisma: PrismaClient) => {
         },
       },
       subscribeTo: {
-        type: UserType,
+        type: GraphQLBoolean,
         args: {
           userId: { type: UUIDType },
           authorId: { type: UUIDType },
