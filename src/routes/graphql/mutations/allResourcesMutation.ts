@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import { CreatePostInputType, PostType } from '../types/postType.js';
-import { CreateProfileInput, ProfileType } from '../types/profileType.js';
-import { CreateUserInput, UserType } from '../types/userType.js';
+import { ChangePostInputType, CreatePostInputType, PostType } from '../types/postType.js';
+import { ChangeProfileInputType, CreateProfileInput, ProfileType } from '../types/profileType.js';
+import { ChangeUserInputType, CreateUserInputType, UserType } from '../types/userType.js';
 import { GraphQLBoolean, GraphQLObjectType, GraphQLString } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
 
@@ -20,11 +20,10 @@ export const resourcesMutation = (prisma: PrismaClient) => {
           });
         },
       },
-
       createUser: {
         type: UserType,
         args: {
-          dto: { type: CreateUserInput },
+          dto: { type: CreateUserInputType },
         },
         resolve: async (_, args) => {
           return await prisma.user.create({
@@ -32,7 +31,6 @@ export const resourcesMutation = (prisma: PrismaClient) => {
           });
         },
       },
-
       createProfile: {
         type: ProfileType,
         args: {
@@ -44,7 +42,6 @@ export const resourcesMutation = (prisma: PrismaClient) => {
           });
         },
       },
-
       deletePost: {
         type: GraphQLBoolean,
         args: {
@@ -55,7 +52,6 @@ export const resourcesMutation = (prisma: PrismaClient) => {
           return deletedPost ? true : false;
         },
       },
-
       deleteProfile: {
         type: GraphQLBoolean,
         args: {
@@ -66,7 +62,6 @@ export const resourcesMutation = (prisma: PrismaClient) => {
           return deletedProfile ? true : false;
         },
       },
-
       deleteUser: {
         type: GraphQLBoolean,
         args: {
@@ -75,6 +70,47 @@ export const resourcesMutation = (prisma: PrismaClient) => {
         resolve: async (_, args) => {
           const deletedUser = await prisma.user.delete({ where: { id: args.id } });
           return deletedUser ? true : false;
+        },
+      },
+      changePost: {
+        type: PostType,
+        args: {
+          id: { type: UUIDType },
+          dto: { type: ChangePostInputType },
+        },
+        resolve: async (_, args) => {
+          const updatedPost = await prisma.post.update({
+            where: { id: args.id },
+            data: args.dto,
+          });
+          console.log('changePost', { updatedPost });
+          return updatedPost;
+        },
+      },
+      changeUser: {
+        type: UserType,
+        args: {
+          id: { type: UUIDType },
+          dto: { type: ChangeUserInputType },
+        },
+        resolve: async (_, args) => {
+          return await prisma.user.update({
+            where: { id: args.id },
+            data: args.dto,
+          });
+        },
+      },
+      changeProfile: {
+        type: ProfileType,
+        args: {
+          id: { type: UUIDType },
+          dto: { type: ChangeProfileInputType },
+        },
+        resolve: async (_, args) => {
+          return await prisma.profile.update({
+            where: { id: args.id },
+            data: args.dto,
+          });
         },
       },
     },
