@@ -4,12 +4,19 @@ import { ExecutionResult, graphql, GraphQLSchema, parse, Source, validate } from
 import { resourcesQuery } from './queries/allResourcesQuery.js';
 import { resourcesMutation } from './mutations/allResourcesMutation.js';
 import depthLimit from 'graphql-depth-limit';
+import DataLoader from 'dataloader';
+import { Post, Profile } from '@prisma/client';
+import { profileLoader } from './loaders/profileLoader.js';
+import { postsLoader } from './loaders/postsLoader.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
 
-  const getAllResourcesSchema = new GraphQLSchema({
-    query: resourcesQuery(prisma),
+  const getAllResourcesSchema = (
+    profileLoader: DataLoader<string, Profile, string>,
+    postsLoader: DataLoader<string, Post[], string>,
+  ) => new GraphQLSchema({
+    query: resourcesQuery(prisma, profileLoader, postsLoader),
     mutation: resourcesMutation(prisma),
   });
 
@@ -25,8 +32,10 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     async handler(req) {
       const { query, variables } = req.body;
 
+      const allResourcesSchema = getAllResourcesSchema(profileLoader(prisma), postsLoader(prisma));
+
       const validationErrors = validate(
-        getAllResourcesSchema,
+        allResourcesSchema,
         parse(new Source(req.body.query)),
         [depthLimit(5)],
       );
@@ -36,7 +45,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       }
 
       const result = await graphql({
-        schema: getAllResourcesSchema,
+        schema: allResourcesSchema,
         source: query,
         variableValues: variables,
       });
